@@ -244,453 +244,344 @@ def main():
     </div>
     """.format(savings_data['potential_savings_50']), unsafe_allow_html=True)
     
-    # Create tabs for each function
-    functions = sorted(df['function'].unique().tolist())
-    tab_names = ['📊 Overview'] + [f"📁 {func}" for func in functions]
-    tabs = st.tabs(tab_names)
+    # Overview Section
+    st.header("📈 Overall Survey Analysis")
     
-    # Overview Tab
-    with tabs[0]:
-        st.header("📈 Overall Survey Analysis")
-        
-        # Overview metrics
-        total_responses, avg_time_spent, automation_users, automation_rate = create_overview_metrics(df)
-        
-        # Display metrics as infographic cards
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #74b9ff, #0984e3); padding: 20px; border-radius: 10px; text-align: center; color: white;">
-                <div style="font-size: 30px;">👥</div>
-                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{total_responses}</div>
-                <div style="font-size: 14px;">Survey Responses</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #fd79a8, #e84393); padding: 20px; border-radius: 10px; text-align: center; color: white;">
-                <div style="font-size: 30px;">⏰</div>
-                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{avg_time_spent:.0f}%</div>
-                <div style="font-size: 14px;">Avg Time on Tasks</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col3:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #55efc4, #00b894); padding: 20px; border-radius: 10px; text-align: center; color: white;">
-                <div style="font-size: 30px;">🤖</div>
-                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{automation_users}/{total_responses}</div>
-                <div style="font-size: 14px;">Using Automation</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col4:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #fdcb6e, #e17055); padding: 20px; border-radius: 10px; text-align: center; color: white;">
-                <div style="font-size: 30px;">📊</div>
-                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{automation_rate:.0f}%</div>
-                <div style="font-size: 14px;">Automation Rate</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Function Deep Dive Tabs
-        st.subheader("🏢 Function Deep Dive Analysis")
-        
-        function_stats = create_function_breakdown(df)
-        functions = function_stats['Function'].tolist()
-        
-        # Create tabs for each function
-        function_tabs = st.tabs([f"📊 {func}" for func in functions])
-        
-        for i, function in enumerate(functions):
-            with function_tabs[i]:
-                # Filter data for this function
-                func_df = df[df['function'] == function]
-                func_stats = function_stats[function_stats['Function'] == function].iloc[0]
-                
-                # Function overview metrics
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    st.metric("Number of Respondents", f"{func_stats['Response_Count']}")
-                
-                with col2:
-                    automation_rate = func_stats['Automation_Rate']
-                    delta_color = "normal" if automation_rate >= 50 else "inverse"
-                    st.metric("Automation Rate", f"{automation_rate:.0f}%")
-                
-                with col3:
-                    avg_time = func_stats['Avg_Time_Percentage']
-                    st.metric("Avg Time on Tasks", f"{avg_time:.0f}%")
-                
-                with col4:
-                    automation_users = func_stats['Automation_Users']
-                    st.metric("Using AI Tools", f"{automation_users}")
-                
-                st.markdown("---")
-                
-                # Detailed analysis
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("🎯 AI Readiness Overview")
-                    
-                    # Proficiency breakdown for this function
-                    prof_counts = func_df['proficiency_level'].value_counts()
-                    for level, count in prof_counts.items():
-                        percentage = (count / len(func_df)) * 100
-                        level_short = level.split('–')[0].strip() if '–' in level else level[:15]
-                        st.write(f"**{level_short}**: {count} ({percentage:.0f}%)")
-                    
-                    st.write("")
-                    
-                    # Usage frequency for this function
-                    st.subheader("📈 Usage Patterns")
-                    freq_counts = func_df['usage_frequency'].value_counts()
-                    for freq, count in freq_counts.items():
-                        percentage = (count / len(func_df)) * 100
-                        freq_short = freq.split('(')[0].strip()
-                        st.write(f"**{freq_short}**: {count} ({percentage:.0f}%)")
-                
-                with col2:
-                    st.subheader("🚧 Top Challenges")
-                    
-                    # Extract challenges for this function
-                    func_challenges = []
-                    for _, row in func_df.iterrows():
-                        if pd.notna(row['challenges']):
-                            challenges = row['challenges'].split(',')
-                            for challenge in challenges:
-                                func_challenges.append(challenge.strip())
-                    
-                    if func_challenges:
-                        challenge_counts = pd.Series(func_challenges).value_counts().head(5)
-                        for challenge, count in challenge_counts.items():
-                            percentage = (count / len(func_df)) * 100
-                            # Shorten long challenge names
-                            short_challenge = challenge[:50] + "..." if len(challenge) > 50 else challenge
-                            st.write(f"• **{short_challenge}** ({count} mentions, {percentage:.0f}%)")
-                    else:
-                        st.write("No specific challenges reported")
-                    
-                    st.write("")
-                    
-                    st.subheader("💡 Skill Development Needs")
-                    
-                    # Extract skill needs for this function
-                    func_skills = []
-                    for _, row in func_df.iterrows():
-                        if pd.notna(row['skill_needs']):
-                            skills = row['skill_needs'].split(',')
-                            for skill in skills:
-                                func_skills.append(skill.strip())
-                    
-                    if func_skills:
-                        skill_counts = pd.Series(func_skills).value_counts().head(3)
-                        for skill, count in skill_counts.items():
-                            percentage = (count / len(func_df)) * 100
-                            short_skill = skill[:50] + "..." if len(skill) > 50 else skill
-                            st.write(f"• **{short_skill}** ({count} requests, {percentage:.0f}%)")
-                    else:
-                        st.write("No specific skill needs reported")
-        
-        st.markdown("---")
-        
-        # AI Proficiency & Usage Infographic
-        st.subheader("🧠 AI Adoption Landscape")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("#### 📊 AI Proficiency Levels")
-            proficiency_counts = df['proficiency_level'].value_counts()
-            
-            total_responses = len(df)
-            for level, count in proficiency_counts.items():
-                percentage = (count / total_responses) * 100
-                
-                # Determine icon and short name based on level content
-                if 'Basic' in level:
-                    icon = '○'
-                    level_short = 'Basic'
-                elif 'Confident' in level:
-                    icon = '●'
-                    level_short = 'Confident'
-                elif 'Advanced' in level:
-                    icon = '◆'
-                    level_short = 'Advanced'
-                else:
-                    icon = '○'
-                    level_short = level[:20] + '...' if len(level) > 20 else level
-                
-                # Create progress bar
-                st.markdown(f"""
-                <div style="margin: 15px 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="font-weight: bold;">{icon} {level_short}</span>
-                        <span style="font-weight: bold; color: #2E86AB;">{count} ({percentage:.0f}%)</span>
-                    </div>
-                    <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px;">
-                        <div style="background: linear-gradient(90deg, #2E86AB, #A23B72); width: {percentage}%; height: 100%; border-radius: 10px;"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown("#### 📈 Usage Frequency")
-            frequency_counts = df['usage_frequency'].value_counts()
-            
-            for freq, count in frequency_counts.items():
-                percentage = (count / total_responses) * 100
-                
-                # Determine icon and short name based on frequency content
-                if 'Daily' in freq or 'Frequently' in freq:
-                    icon = '●●●'
-                    freq_short = 'Daily'
-                elif 'Regularly' in freq or '3-5' in freq:
-                    icon = '●●○'
-                    freq_short = 'Regular'
-                elif 'Occasionally' in freq or '1-2' in freq:
-                    icon = '●○○'
-                    freq_short = 'Occasional'
-                elif 'Rarely' in freq or 'month' in freq:
-                    icon = '○○○'
-                    freq_short = 'Rare'
-                else:
-                    icon = '○'
-                    freq_short = freq[:15] + '...' if len(freq) > 15 else freq
-                
-                st.markdown(f"""
-                <div style="margin: 15px 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="font-weight: bold;">{icon} {freq_short}</span>
-                        <span style="font-weight: bold; color: #F18F01;">{count} ({percentage:.0f}%)</span>
-                    </div>
-                    <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px;">
-                        <div style="background: linear-gradient(90deg, #F18F01, #C73E1D); width: {percentage}%; height: 100%; border-radius: 10px;"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        # Automation Opportunity Visualization
-        st.subheader("🎯 Automation Opportunity Analysis")
-        
-        # Create automation potential chart
-        automation_data = []
-        for func in df['function'].unique():
-            func_df = df[df['function'] == func]
-            total_time = func_df['time_percentage'].sum()
-            manual_time = func_df[func_df['uses_automation'] == 'No']['time_percentage'].sum()
-            automated_time = total_time - manual_time
-            potential_savings = manual_time * 0.5
-            
-            automation_data.append({
-                'Function': func,
-                'Current Manual Hours': manual_time,
-                'Already Automated': automated_time,
-                'Potential Savings (50%)': potential_savings
-            })
-        
-        automation_df = pd.DataFrame(automation_data)
-        
-        # Create stacked bar chart
-        fig_automation = px.bar(
-            automation_df.melt(id_vars=['Function'], 
-                             value_vars=['Already Automated', 'Current Manual Hours', 'Potential Savings (50%)']),
-            x='Function',
-            y='value',
-            color='variable',
-            title='⚡ Time Allocation & Automation Potential by Function',
-            labels={'value': 'Weekly Hours', 'variable': 'Category'},
-            color_discrete_map={
-                'Already Automated': '#2ecc71',
-                'Current Manual Hours': '#e74c3c', 
-                'Potential Savings (50%)': '#f39c12'
-            }
-        )
-        fig_automation.update_layout(xaxis_tickangle=-45)
-        st.plotly_chart(fig_automation, use_container_width=True)
-        
-        # Challenges & Barriers Infographic
-        st.markdown("---")
-        st.subheader("🚧 Top Challenges & Barriers")
-        
-        # Process challenges data
-        challenges_data = []
-        for _, row in df.iterrows():
-            if pd.notna(row['challenges']):
-                challenges = row['challenges'].split(',')
-                for challenge in challenges:
-                    challenges_data.append(challenge.strip())
-        
-        challenge_counts = pd.Series(challenges_data).value_counts().head(6)
-        
-        # Create challenge cards
-        cols = st.columns(3)
-        challenge_icons = ['🎯', '⚡', '🔒', '⏰', '🎨', '📚']
-        
-        for i, (challenge, count) in enumerate(challenge_counts.items()):
-            with cols[i % 3]:
-                icon = challenge_icons[i % len(challenge_icons)]
-                percentage = (count / len(df)) * 100
-                
-                # Shorten challenge text for display
-                short_challenge = challenge.split(',')[0] if ',' in challenge else challenge
-                if len(short_challenge) > 30:
-                    short_challenge = short_challenge[:30] + "..."
-                
-                st.markdown(f"""
-                <div style="
-                    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
-                    border-radius: 15px;
-                    padding: 15px;
-                    text-align: center;
-                    margin: 10px 0;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                ">
-                    <div style="font-size: 30px; margin-bottom: 10px;">{icon}</div>
-                    <div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 5px;">
-                        {short_challenge}
-                    </div>
-                    <div style="font-size: 20px; font-weight: bold; color: #e91e63;">
-                        {count}
-                    </div>
-                    <div style="font-size: 12px; color: #666;">
-                        ({percentage:.0f}% of respondents)
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        # Interactive Time Savings Calculator
-        st.markdown("---")
-        st.subheader("🧮 Interactive Time Savings Calculator")
-        
-        col1, col2 = st.columns([1, 1])
-        
-        with col1:
-            automation_percentage = st.slider(
-                "Automation Level (%)", 
-                min_value=0, 
-                max_value=100, 
-                value=50, 
-                step=5,
-                help="Percentage of manual tasks to automate"
-            )
-            
-            total_manual_hours = savings_data['manual_hours']
-            calculated_savings = total_manual_hours * (automation_percentage / 100)
-            annual_calculated_savings = calculated_savings * 52
-            
-        with col2:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white;">
-                <h4>💡 Projected Savings</h4>
-                <p><strong>Weekly:</strong> {calculated_savings:.0f} hours</p>
-                <p><strong>Annual:</strong> {annual_calculated_savings:.0f} hours</p>
-                <p><strong>FTE Equivalent:</strong> {annual_calculated_savings/2080:.1f} positions</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # ROI Message
-        if automation_percentage >= 50:
-            st.success(f"🎉 With {automation_percentage}% automation, you could save {calculated_savings:.0f} hours weekly - equivalent to {annual_calculated_savings/2080:.1f} full-time positions annually!")
-        elif automation_percentage >= 25:
-            st.info(f"💼 {automation_percentage}% automation would free up {calculated_savings:.0f} hours weekly for strategic work.")
-        else:
-            st.warning(f"⚠️ Only {automation_percentage}% automation leaves significant opportunity on the table.")
-        
-        # Visual Summary & Call to Action
-        st.markdown("---")
-        st.subheader("🚀 Ready to Transform? Here's Your Action Plan")
-        
-        # Create action plan cards
-        action_cols = st.columns(3)
-        
-        with action_cols[0]:
-            st.markdown("""
-            <div style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 15px;
-                padding: 25px;
-                text-align: center;
-                color: white;
-                height: 200px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            ">
-                <div style="font-size: 40px; margin-bottom: 15px;">🎯</div>
-                <h4 style="margin: 10px 0;">Phase 1: Quick Wins</h4>
-                <p style="margin: 0; font-size: 14px;">Start with simple task automation for immediate impact</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with action_cols[1]:
-            st.markdown("""
-            <div style="
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                border-radius: 15px;
-                padding: 25px;
-                text-align: center;
-                color: white;
-                height: 200px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            ">
-                <div style="font-size: 40px; margin-bottom: 15px;">📈</div>
-                <h4 style="margin: 10px 0;">Phase 2: Scale Up</h4>
-                <p style="margin: 0; font-size: 14px;">Expand automation to repetitive processes across functions</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with action_cols[2]:
-            st.markdown("""
-            <div style="
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                border-radius: 15px;
-                padding: 25px;
-                text-align: center;
-                color: white;
-                height: 200px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            ">
-                <div style="font-size: 40px; margin-bottom: 15px;">🎉</div>
-                <h4 style="margin: 10px 0;">Phase 3: Transform</h4>
-                <p style="margin: 0; font-size: 14px;">Achieve strategic automation goals and measure ROI</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Final impact statement
-        st.markdown("---")
-        total_manual_hours = savings_data['manual_hours']
-        potential_50_savings = savings_data['potential_savings_50']
-        
+    # Overview metrics
+    total_responses, avg_time_spent, automation_users, automation_rate = create_overview_metrics(df)
+    
+    # Display metrics as infographic cards
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
         st.markdown(f"""
-        <div style="
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            color: white;
-            margin: 20px 0;
-        ">
-            <h2 style="margin: 0 0 20px 0;">💡 The Bottom Line</h2>
-            <div style="font-size: 18px; line-height: 1.6;">
-                <p><strong>{total_manual_hours:.0f} hours</strong> of manual work happen weekly across all functions.</p>
-                <p>With <strong>50% automation</strong>, we could save <strong>{potential_50_savings:.0f} hours per week</strong></p>
-                <p style="font-size: 24px; font-weight: bold; margin-top: 20px;">
-                    = {potential_50_savings * 52:.0f} hours annually = {(potential_50_savings * 52)/2080:.1f} full-time positions! 🎯
-                </p>
-            </div>
+        <div style="background: linear-gradient(135deg, #74b9ff, #0984e3); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+            <div style="font-size: 30px;">👥</div>
+            <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{total_responses}</div>
+            <div style="font-size: 14px;">Survey Responses</div>
         </div>
         """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fd79a8, #e84393); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+            <div style="font-size: 30px;">⏰</div>
+            <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{avg_time_spent:.0f}%</div>
+            <div style="font-size: 14px;">Avg Time on Tasks</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #55efc4, #00b894); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+            <div style="font-size: 30px;">🤖</div>
+            <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{automation_users}/{total_responses}</div>
+            <div style="font-size: 14px;">Using Automation</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #fdcb6e, #e17055); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+            <div style="font-size: 30px;">📊</div>
+            <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{automation_rate:.0f}%</div>
+            <div style="font-size: 14px;">Automation Rate</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # AI Proficiency & Usage Infographic
+    st.subheader("🧠 AI Adoption Landscape")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 📊 AI Proficiency Levels")
+        proficiency_counts = df['proficiency_level'].value_counts()
+        
+        total_responses = len(df)
+        for level, count in proficiency_counts.items():
+            percentage = (count / total_responses) * 100
+            
+            # Determine icon and short name based on level content
+            if 'Basic' in level:
+                icon = '○'
+                level_short = 'Basic'
+            elif 'Confident' in level:
+                icon = '●'
+                level_short = 'Confident'
+            elif 'Advanced' in level:
+                icon = '◆'
+                level_short = 'Advanced'
+            else:
+                icon = '○'
+                level_short = level[:20] + '...' if len(level) > 20 else level
+            
+            # Create progress bar
+            st.markdown(f"""
+            <div style="margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <span style="font-weight: bold;">{icon} {level_short}</span>
+                    <span style="font-weight: bold; color: #2E86AB;">{count} ({percentage:.0f}%)</span>
+                </div>
+                <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px;">
+                    <div style="background: linear-gradient(90deg, #2E86AB, #A23B72); width: {percentage}%; height: 100%; border-radius: 10px;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("#### 📈 Usage Frequency")
+        frequency_counts = df['usage_frequency'].value_counts()
+        
+        for freq, count in frequency_counts.items():
+            percentage = (count / total_responses) * 100
+            
+            # Determine icon and short name based on frequency content
+            if 'Daily' in freq or 'Frequently' in freq:
+                icon = '●●●'
+                freq_short = 'Daily'
+            elif 'Regularly' in freq or '3-5' in freq:
+                icon = '●●○'
+                freq_short = 'Regular'
+            elif 'Occasionally' in freq or '1-2' in freq:
+                icon = '●○○'
+                freq_short = 'Occasional'
+            elif 'Rarely' in freq or 'month' in freq:
+                icon = '○○○'
+                freq_short = 'Rare'
+            else:
+                icon = '○'
+                freq_short = freq[:15] + '...' if len(freq) > 15 else freq
+            
+            st.markdown(f"""
+            <div style="margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <span style="font-weight: bold;">{icon} {freq_short}</span>
+                    <span style="font-weight: bold; color: #F18F01;">{count} ({percentage:.0f}%)</span>
+                </div>
+                <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px;">
+                    <div style="background: linear-gradient(90deg, #F18F01, #C73E1D); width: {percentage}%; height: 100%; border-radius: 10px;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Automation Opportunity Visualization
+    st.subheader("🎯 Automation Opportunity Analysis")
+    
+    # Create automation potential chart
+    automation_data = []
+    for func in df['function'].unique():
+        func_df = df[df['function'] == func]
+        total_time = func_df['time_percentage'].sum()
+        manual_time = func_df[func_df['uses_automation'] == 'No']['time_percentage'].sum()
+        automated_time = total_time - manual_time
+        potential_savings = manual_time * 0.5
+        
+        automation_data.append({
+            'Function': func,
+            'Current Manual Hours': manual_time,
+            'Already Automated': automated_time,
+            'Potential Savings (50%)': potential_savings
+        })
+    
+    automation_df = pd.DataFrame(automation_data)
+    
+    # Create stacked bar chart
+    fig_automation = px.bar(
+        automation_df.melt(id_vars=['Function'], 
+                         value_vars=['Already Automated', 'Current Manual Hours', 'Potential Savings (50%)']),
+        x='Function',
+        y='value',
+        color='variable',
+        title='⚡ Time Allocation & Automation Potential by Function',
+        labels={'value': 'Weekly Hours', 'variable': 'Category'},
+        color_discrete_map={
+            'Already Automated': '#2ecc71',
+            'Current Manual Hours': '#e74c3c', 
+            'Potential Savings (50%)': '#f39c12'
+        }
+    )
+    fig_automation.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig_automation, use_container_width=True)
+    
+    # Challenges & Barriers Infographic
+    st.markdown("---")
+    st.subheader("🚧 Top Challenges & Barriers")
+    
+    # Process challenges data
+    challenges_data = []
+    for _, row in df.iterrows():
+        if pd.notna(row['challenges']):
+            challenges = row['challenges'].split(',')
+            for challenge in challenges:
+                challenges_data.append(challenge.strip())
+    
+    challenge_counts = pd.Series(challenges_data).value_counts().head(6)
+    
+    # Create challenge cards
+    cols = st.columns(3)
+    challenge_icons = ['🎯', '⚡', '🔒', '⏰', '🎨', '📚']
+    
+    for i, (challenge, count) in enumerate(challenge_counts.items()):
+        with cols[i % 3]:
+            icon = challenge_icons[i % len(challenge_icons)]
+            percentage = (count / len(df)) * 100
+            
+            # Shorten challenge text for display
+            short_challenge = challenge.split(',')[0] if ',' in challenge else challenge
+            if len(short_challenge) > 30:
+                short_challenge = short_challenge[:30] + "..."
+            
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+                border-radius: 15px;
+                padding: 15px;
+                text-align: center;
+                margin: 10px 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            ">
+                <div style="font-size: 30px; margin-bottom: 10px;">{icon}</div>
+                <div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 5px;">
+                    {short_challenge}
+                </div>
+                <div style="font-size: 20px; font-weight: bold; color: #e91e63;">
+                    {count}
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    ({percentage:.0f}% of respondents)
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Interactive Time Savings Calculator
+    st.markdown("---")
+    st.subheader("🧮 Interactive Time Savings Calculator")
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        automation_percentage = st.slider(
+            "Automation Level (%)", 
+            min_value=0, 
+            max_value=100, 
+            value=50, 
+            step=5,
+            help="Percentage of manual tasks to automate"
+        )
+        
+        total_manual_hours = savings_data['manual_hours']
+        calculated_savings = total_manual_hours * (automation_percentage / 100)
+        annual_calculated_savings = calculated_savings * 52
+        
+    with col2:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white;">
+            <h4>💡 Projected Savings</h4>
+            <p><strong>Weekly:</strong> {calculated_savings:.0f} hours</p>
+            <p><strong>Annual:</strong> {annual_calculated_savings:.0f} hours</p>
+            <p><strong>FTE Equivalent:</strong> {annual_calculated_savings/2080:.1f} positions</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # ROI Message
+    if automation_percentage >= 50:
+        st.success(f"🎉 With {automation_percentage}% automation, you could save {calculated_savings:.0f} hours weekly - equivalent to {annual_calculated_savings/2080:.1f} full-time positions annually!")
+    elif automation_percentage >= 25:
+        st.info(f"💼 {automation_percentage}% automation would free up {calculated_savings:.0f} hours weekly for strategic work.")
+    else:
+        st.warning(f"⚠️ Only {automation_percentage}% automation leaves significant opportunity on the table.")
+    
+    # Visual Summary & Call to Action
+    st.markdown("---")
+    st.subheader("🚀 Ready to Transform? Here's Your Action Plan")
+    
+    # Create action plan cards
+    action_cols = st.columns(3)
+    
+    with action_cols[0]:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        ">
+            <div style="font-size: 40px; margin-bottom: 15px;">🎯</div>
+            <h4 style="margin: 10px 0;">Phase 1: Quick Wins</h4>
+            <p style="margin: 0; font-size: 14px;">Start with simple task automation for immediate impact</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with action_cols[1]:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        ">
+            <div style="font-size: 40px; margin-bottom: 15px;">📈</div>
+            <h4 style="margin: 10px 0;">Phase 2: Scale Up</h4>
+            <p style="margin: 0; font-size: 14px;">Expand automation to repetitive processes across functions</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with action_cols[2]:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        ">
+            <div style="font-size: 40px; margin-bottom: 15px;">🎉</div>
+            <h4 style="margin: 10px 0;">Phase 3: Transform</h4>
+            <p style="margin: 0; font-size: 14px;">Achieve strategic automation goals and measure ROI</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Final impact statement
+    st.markdown("---")
+    total_manual_hours = savings_data['manual_hours']
+    potential_50_savings = savings_data['potential_savings_50']
+    
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        color: white;
+        margin: 20px 0;
+    ">
+        <h2 style="margin: 0 0 20px 0;">💡 The Bottom Line</h2>
+        <div style="font-size: 18px; line-height: 1.6;">
+            <p><strong>{total_manual_hours:.0f} hours</strong> of manual work happen weekly across all functions.</p>
+            <p>With <strong>50% automation</strong>, we could save <strong>{potential_50_savings:.0f} hours per week</strong></p>
+            <p style="font-size: 24px; font-weight: bold; margin-top: 20px;">
+                = {potential_50_savings * 52:.0f} hours annually = {(potential_50_savings * 52)/2080:.1f} full-time positions! 🎯
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
