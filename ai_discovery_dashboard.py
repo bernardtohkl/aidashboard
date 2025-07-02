@@ -344,7 +344,7 @@ def main():
                     
                     <div>
                         <div style="font-size: 16px; font-weight: bold; color: #333;">
-                            {row['Avg_Time_Spent']:.0f}%
+                            {row['Avg_Time_Percentage']:.0f}%
                         </div>
                         <div style="font-size: 12px; color: #666;">Avg Time on Tasks</div>
                     </div>
