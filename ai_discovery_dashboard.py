@@ -171,13 +171,78 @@ def plot_automation_usage(df):
     
     return fig
 
+def calculate_time_savings_potential(df):
+    """Calculate potential time savings from automation"""
+    total_weekly_hours = df['time_percentage'].sum()
+    current_automation_hours = df[df['uses_automation'] == 'Yes']['time_percentage'].sum()
+    manual_hours = total_weekly_hours - current_automation_hours
+    
+    # Potential savings with 50% automation of manual tasks
+    potential_savings_50 = manual_hours * 0.5
+    
+    return {
+        'total_weekly_hours': total_weekly_hours,
+        'manual_hours': manual_hours,
+        'current_automation_hours': current_automation_hours,
+        'potential_savings_50': potential_savings_50,
+        'automation_opportunity': manual_hours / total_weekly_hours * 100 if total_weekly_hours > 0 else 0
+    }
+
 def main():
     """Main dashboard function"""
-    st.title("🤖 AI Discovery Survey Dashboard")
-    st.markdown("---")
+    st.title("🚀 AI Discovery Survey Dashboard")
+    st.markdown("### *Unlocking Automation Potential Across Corporate Functions*")
     
     # Load data
     df = load_and_process_data()
+    
+    # Calculate time savings potential
+    savings_data = calculate_time_savings_potential(df)
+    
+    # Hero section with key insights
+    st.markdown("---")
+    st.markdown("## 💡 **Key Insights: The Automation Opportunity**")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style="background: linear-gradient(90deg, #ff6b6b, #ffa726); padding: 20px; border-radius: 10px; text-align: center;">
+            <h2 style="color: white; margin: 0;">⚠️ {:.0f}%</h2>
+            <p style="color: white; margin: 5px 0;"><strong>Manual Tasks</strong></p>
+            <p style="color: white; font-size: 14px; margin: 0;">Still done manually</p>
+        </div>
+        """.format(savings_data['automation_opportunity']), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="background: linear-gradient(90deg, #4ecdc4, #45b7d1); padding: 20px; border-radius: 10px; text-align: center;">
+            <h2 style="color: white; margin: 0;">💰 {:.0f} hrs</h2>
+            <p style="color: white; margin: 5px 0;"><strong>Weekly Savings</strong></p>
+            <p style="color: white; font-size: 14px; margin: 0;">With 50% automation</p>
+        </div>
+        """.format(savings_data['potential_savings_50']), unsafe_allow_html=True)
+    
+    with col3:
+        annual_savings = savings_data['potential_savings_50'] * 52
+        st.markdown("""
+        <div style="background: linear-gradient(90deg, #96ceb4, #ffeaa7); padding: 20px; border-radius: 10px; text-align: center;">
+            <h2 style="color: white; margin: 0;">📈 {:.0f} hrs</h2>
+            <p style="color: white; margin: 5px 0;"><strong>Annual Savings</strong></p>
+            <p style="color: white; font-size: 14px; margin: 0;">Potential per year</p>
+        </div>
+        """.format(annual_savings), unsafe_allow_html=True)
+    
+    # Call to action
+    st.markdown("---")
+    st.markdown("""
+    <div style="background-color: #f8f9fa; padding: 20px; border-left: 5px solid #17a2b8; border-radius: 5px;">
+        <h3 style="color: #17a2b8; margin-top: 0;">🎯 The Opportunity</h3>
+        <p><strong>Repetitive manual tasks</strong> are consuming significant time across all functions. 
+        By implementing AI automation for just <strong>50% of these tasks</strong>, we could free up 
+        <strong>{:.0f} hours weekly</strong> for higher-value strategic work.</p>
+    </div>
+    """.format(savings_data['potential_savings_50']), unsafe_allow_html=True)
     
     # Create tabs for each function
     functions = sorted(df['function'].unique().tolist())
@@ -186,7 +251,7 @@ def main():
     
     # Overview Tab
     with tabs[0]:
-        st.header("Overall Survey Analysis")
+        st.header("📈 Overall Survey Analysis")
         
         # Overview metrics
         total_responses, avg_time_spent, automation_users, automation_rate = create_overview_metrics(df)
@@ -223,6 +288,45 @@ def main():
         with col2:
             st.plotly_chart(plot_usage_frequency(df), use_container_width=True)
         
+        # Automation Opportunity Visualization
+        st.subheader("🎯 Automation Opportunity Analysis")
+        
+        # Create automation potential chart
+        automation_data = []
+        for func in df['function'].unique():
+            func_df = df[df['function'] == func]
+            total_time = func_df['time_percentage'].sum()
+            manual_time = func_df[func_df['uses_automation'] == 'No']['time_percentage'].sum()
+            automated_time = total_time - manual_time
+            potential_savings = manual_time * 0.5
+            
+            automation_data.append({
+                'Function': func,
+                'Current Manual Hours': manual_time,
+                'Already Automated': automated_time,
+                'Potential Savings (50%)': potential_savings
+            })
+        
+        automation_df = pd.DataFrame(automation_data)
+        
+        # Create stacked bar chart
+        fig_automation = px.bar(
+            automation_df.melt(id_vars=['Function'], 
+                             value_vars=['Already Automated', 'Current Manual Hours', 'Potential Savings (50%)']),
+            x='Function',
+            y='value',
+            color='variable',
+            title='⚡ Time Allocation & Automation Potential by Function',
+            labels={'value': 'Weekly Hours', 'variable': 'Category'},
+            color_discrete_map={
+                'Already Automated': '#2ecc71',
+                'Current Manual Hours': '#e74c3c', 
+                'Potential Savings (50%)': '#f39c12'
+            }
+        )
+        fig_automation.update_layout(xaxis_tickangle=-45)
+        st.plotly_chart(fig_automation, use_container_width=True)
+        
         # Additional overview charts
         col1, col2 = st.columns(2)
         
@@ -231,6 +335,44 @@ def main():
         
         with col2:
             st.plotly_chart(plot_automation_usage(df), use_container_width=True)
+        
+        # Interactive Time Savings Calculator
+        st.markdown("---")
+        st.subheader("🧮 Interactive Time Savings Calculator")
+        
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            automation_percentage = st.slider(
+                "Automation Level (%)", 
+                min_value=0, 
+                max_value=100, 
+                value=50, 
+                step=5,
+                help="Percentage of manual tasks to automate"
+            )
+            
+            total_manual_hours = savings_data['manual_hours']
+            calculated_savings = total_manual_hours * (automation_percentage / 100)
+            annual_calculated_savings = calculated_savings * 52
+            
+        with col2:
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white;">
+                <h4>💡 Projected Savings</h4>
+                <p><strong>Weekly:</strong> {calculated_savings:.0f} hours</p>
+                <p><strong>Annual:</strong> {annual_calculated_savings:.0f} hours</p>
+                <p><strong>FTE Equivalent:</strong> {annual_calculated_savings/2080:.1f} positions</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # ROI Message
+        if automation_percentage >= 50:
+            st.success(f"🎉 With {automation_percentage}% automation, you could save {calculated_savings:.0f} hours weekly - equivalent to {annual_calculated_savings/2080:.1f} full-time positions annually!")
+        elif automation_percentage >= 25:
+            st.info(f"💼 {automation_percentage}% automation would free up {calculated_savings:.0f} hours weekly for strategic work.")
+        else:
+            st.warning(f"⚠️ Only {automation_percentage}% automation leaves significant opportunity on the table.")
         
         # Overall detailed data view
         st.markdown("---")
