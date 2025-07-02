@@ -297,50 +297,106 @@ def main():
         
         st.markdown("---")
         
-        # Function breakdown as infographic cards
-        st.subheader("🏢 Corporate Functions at a Glance")
+        # Function Deep Dive Tabs
+        st.subheader("🏢 Function Deep Dive Analysis")
         
         function_stats = create_function_breakdown(df)
+        functions = function_stats['Function'].tolist()
         
-        # Create infographic-style function cards using Streamlit components
-        cols = st.columns(len(function_stats))
+        # Create tabs for each function
+        function_tabs = st.tabs([f"📊 {func}" for func in functions])
         
-        for i, (_, row) in enumerate(function_stats.iterrows()):
-            with cols[i]:
-                # Determine status based on automation rate
-                if row['Automation_Rate'] >= 60:
-                    status_color = "🟢"
-                    status_text = "High Automation"
-                elif row['Automation_Rate'] >= 30:
-                    status_color = "🟡"
-                    status_text = "Medium Automation"
-                else:
-                    status_color = "🔴"
-                    status_text = "Low Automation"
+        for i, function in enumerate(functions):
+            with function_tabs[i]:
+                # Filter data for this function
+                func_df = df[df['function'] == function]
+                func_stats = function_stats[function_stats['Function'] == function].iloc[0]
                 
-                # Create consistent layout using Streamlit components only
-                function_name = row['Function']
-                if len(function_name) > 20:
-                    function_name = function_name[:17] + "..."
+                # Function overview metrics
+                col1, col2, col3, col4 = st.columns(4)
                 
-                # Header section - keep consistent
-                st.markdown(f"**{status_color} {function_name}**")
-                st.text(f"({row['Response_Count']} responses)")
-                st.text(status_text)
-                
-                # Add fixed spacing
-                st.text("")  # Empty line for spacing
-                st.text("")  # Second empty line for more spacing
-                
-                # Metrics - now should align
-                col1, col2 = st.columns([1, 1])
                 with col1:
-                    st.markdown("**Automation Rate**")
-                    st.markdown(f"# {row['Automation_Rate']:.0f}%")
+                    st.metric("Team Size", f"{func_stats['Response_Count']} people")
                 
                 with col2:
-                    st.markdown("**Time on Tasks**") 
-                    st.markdown(f"## {row['Avg_Time_Percentage']:.0f}%")
+                    automation_rate = func_stats['Automation_Rate']
+                    delta_color = "normal" if automation_rate >= 50 else "inverse"
+                    st.metric("Automation Rate", f"{automation_rate:.0f}%")
+                
+                with col3:
+                    avg_time = func_stats['Avg_Time_Percentage']
+                    st.metric("Avg Time on Tasks", f"{avg_time:.0f}%")
+                
+                with col4:
+                    automation_users = func_stats['Automation_Users']
+                    st.metric("Using AI Tools", f"{automation_users}")
+                
+                st.markdown("---")
+                
+                # Detailed analysis
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.subheader("🎯 AI Readiness Overview")
+                    
+                    # Proficiency breakdown for this function
+                    prof_counts = func_df['proficiency_level'].value_counts()
+                    for level, count in prof_counts.items():
+                        percentage = (count / len(func_df)) * 100
+                        level_short = level.split('–')[0].strip() if '–' in level else level[:15]
+                        st.write(f"**{level_short}**: {count} people ({percentage:.0f}%)")
+                    
+                    st.write("")
+                    
+                    # Usage frequency for this function
+                    st.subheader("📈 Usage Patterns")
+                    freq_counts = func_df['usage_frequency'].value_counts()
+                    for freq, count in freq_counts.items():
+                        percentage = (count / len(func_df)) * 100
+                        freq_short = freq.split('(')[0].strip()
+                        st.write(f"**{freq_short}**: {count} people ({percentage:.0f}%)")
+                
+                with col2:
+                    st.subheader("🚧 Top Challenges")
+                    
+                    # Extract challenges for this function
+                    func_challenges = []
+                    for _, row in func_df.iterrows():
+                        if pd.notna(row['challenges']):
+                            challenges = row['challenges'].split(',')
+                            for challenge in challenges:
+                                func_challenges.append(challenge.strip())
+                    
+                    if func_challenges:
+                        challenge_counts = pd.Series(func_challenges).value_counts().head(5)
+                        for challenge, count in challenge_counts.items():
+                            percentage = (count / len(func_df)) * 100
+                            # Shorten long challenge names
+                            short_challenge = challenge[:50] + "..." if len(challenge) > 50 else challenge
+                            st.write(f"• **{short_challenge}** ({count} mentions, {percentage:.0f}%)")
+                    else:
+                        st.write("No specific challenges reported")
+                    
+                    st.write("")
+                    
+                    st.subheader("💡 Skill Development Needs")
+                    
+                    # Extract skill needs for this function
+                    func_skills = []
+                    for _, row in func_df.iterrows():
+                        if pd.notna(row['skill_needs']):
+                            skills = row['skill_needs'].split(',')
+                            for skill in skills:
+                                func_skills.append(skill.strip())
+                    
+                    if func_skills:
+                        skill_counts = pd.Series(func_skills).value_counts().head(3)
+                        for skill, count in skill_counts.items():
+                            percentage = (count / len(func_df)) * 100
+                            short_skill = skill[:50] + "..." if len(skill) > 50 else skill
+                            st.write(f"• **{short_skill}** ({count} requests, {percentage:.0f}%)")
+                    else:
+                        st.write("No specific skill needs reported")
         
         st.markdown("---")
         
