@@ -318,37 +318,29 @@ def main():
                     status_color = "🔴"
                     status_text = "Low Automation"
                 
-                # Create consistent card layout
+                # Create consistent layout using Streamlit components only
                 function_name = row['Function']
-                # Truncate long function names to ensure consistent wrapping
                 if len(function_name) > 20:
                     function_name = function_name[:17] + "..."
                 
-                st.markdown(f"""
-                <div style="padding: 10px; border: 1px solid #ddd; border-radius: 10px; height: 250px;">
-                    <div style="height: 80px;">
-                        <h4 style="margin: 0; line-height: 1.2;">{status_color} {function_name}</h4>
-                        <p style="margin: 5px 0; font-size: 12px; color: #666;">({row['Response_Count']} responses)</p>
-                        <p style="margin: 0; font-size: 11px; color: #888;">{status_text}</p>
-                    </div>
-                    
-                    <div style="margin-top: 20px;">
-                        <div style="margin-bottom: 15px;">
-                            <div style="font-size: 24px; font-weight: bold; color: #1f77b4;">
-                                {row['Automation_Rate']:.0f}%
-                            </div>
-                            <div style="font-size: 12px; color: #666;">Automation Rate</div>
-                        </div>
-                        
-                        <div>
-                            <div style="font-size: 20px; font-weight: bold; color: #ff7f0e;">
-                                {row['Avg_Time_Percentage']:.0f}%
-                            </div>
-                            <div style="font-size: 12px; color: #666;">Avg Time on Tasks</div>
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                # Header section - keep consistent
+                st.markdown(f"**{status_color} {function_name}**")
+                st.text(f"({row['Response_Count']} responses)")
+                st.text(status_text)
+                
+                # Add fixed spacing
+                st.text("")  # Empty line for spacing
+                st.text("")  # Second empty line for more spacing
+                
+                # Metrics - now should align
+                col1, col2 = st.columns([1, 1])
+                with col1:
+                    st.markdown("**Automation Rate**")
+                    st.markdown(f"# {row['Automation_Rate']:.0f}%")
+                
+                with col2:
+                    st.markdown("**Time on Tasks**") 
+                    st.markdown(f"## {row['Avg_Time_Percentage']:.0f}%")
         
         st.markdown("---")
         
