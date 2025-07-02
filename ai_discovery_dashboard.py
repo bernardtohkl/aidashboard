@@ -21,7 +21,13 @@ def load_and_process_data():
     csv_path = 'data/AI_Discovery_Responses.csv'
     if not os.path.exists(csv_path):
         csv_path = os.path.join(os.path.dirname(__file__), 'data', 'AI_Discovery_Responses.csv')
-    df = pd.read_csv(csv_path)
+    
+    # Read CSV with error handling for malformed data
+    try:
+        df = pd.read_csv(csv_path, on_bad_lines='skip', engine='python')
+    except Exception as e:
+        st.error(f"Error reading CSV file: {e}")
+        return pd.DataFrame()
     
     # Clean column names
     df.columns = [col.strip() for col in df.columns]
