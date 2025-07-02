@@ -362,17 +362,23 @@ def main():
             st.markdown("#### 📊 AI Proficiency Levels")
             proficiency_counts = df['proficiency_level'].value_counts()
             
-            proficiency_icons = {
-                'Basic – I've used them for simple tasks like writing or summarizing': '●',
-                'Confident – I can craft decent prompts and use GenAI for work regularly': '●', 
-                'Advanced – I understand prompting strategies and optimize outputs': '●'
-            }
-            
             total_responses = len(df)
             for level, count in proficiency_counts.items():
                 percentage = (count / total_responses) * 100
-                icon = proficiency_icons.get(level, '○')
-                level_short = level.split('–')[0].strip()
+                
+                # Determine icon and short name based on level content
+                if 'Basic' in level:
+                    icon = '○'
+                    level_short = 'Basic'
+                elif 'Confident' in level:
+                    icon = '●'
+                    level_short = 'Confident'
+                elif 'Advanced' in level:
+                    icon = '◆'
+                    level_short = 'Advanced'
+                else:
+                    icon = '○'
+                    level_short = level[:20] + '...' if len(level) > 20 else level
                 
                 # Create progress bar
                 st.markdown(f"""
@@ -391,21 +397,30 @@ def main():
             st.markdown("#### 📈 Usage Frequency")
             frequency_counts = df['usage_frequency'].value_counts()
             
-            frequency_icons = {
-                'Frequently (Daily)': '▲',
-                'Regularly (3-5 times per week)': '■',
-                'Occasionally (1-2 times per week)': '●',
-                'Rarely (Few times per month)': '▼'
-            }
-            
             for freq, count in frequency_counts.items():
                 percentage = (count / total_responses) * 100
-                icon = frequency_icons.get(freq, '○')
+                
+                # Determine icon and short name based on frequency content
+                if 'Daily' in freq or 'Frequently' in freq:
+                    icon = '●●●'
+                    freq_short = 'Daily'
+                elif 'Regularly' in freq or '3-5' in freq:
+                    icon = '●●○'
+                    freq_short = 'Regular'
+                elif 'Occasionally' in freq or '1-2' in freq:
+                    icon = '●○○'
+                    freq_short = 'Occasional'
+                elif 'Rarely' in freq or 'month' in freq:
+                    icon = '○○○'
+                    freq_short = 'Rare'
+                else:
+                    icon = '○'
+                    freq_short = freq[:15] + '...' if len(freq) > 15 else freq
                 
                 st.markdown(f"""
                 <div style="margin: 15px 0;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="font-weight: bold;">{icon} {freq}</span>
+                        <span style="font-weight: bold;">{icon} {freq_short}</span>
                         <span style="font-weight: bold; color: #F18F01;">{count} ({percentage:.0f}%)</span>
                     </div>
                     <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px;">
