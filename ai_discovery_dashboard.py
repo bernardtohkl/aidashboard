@@ -318,26 +318,37 @@ def main():
                     status_color = "🔴"
                     status_text = "Low Automation"
                 
-                # Use Streamlit container for clean styling
-                with st.container():
-                    # Fixed height header section
-                    st.markdown(f"**{status_color} {row['Function']}**")
-                    st.caption(f"({row['Response_Count']} responses)")
-                    st.caption(status_text)
+                # Create consistent card layout
+                function_name = row['Function']
+                # Truncate long function names to ensure consistent wrapping
+                if len(function_name) > 20:
+                    function_name = function_name[:17] + "..."
+                
+                st.markdown(f"""
+                <div style="padding: 10px; border: 1px solid #ddd; border-radius: 10px; height: 250px;">
+                    <div style="height: 80px;">
+                        <h4 style="margin: 0; line-height: 1.2;">{status_color} {function_name}</h4>
+                        <p style="margin: 5px 0; font-size: 12px; color: #666;">({row['Response_Count']} responses)</p>
+                        <p style="margin: 0; font-size: 11px; color: #888;">{status_text}</p>
+                    </div>
                     
-                    # Add consistent spacing
-                    st.write("")
-                    
-                    # Metrics section with consistent positioning
-                    st.metric(
-                        label="Automation Rate",
-                        value=f"{row['Automation_Rate']:.0f}%"
-                    )
-                    
-                    st.metric(
-                        label="Avg Time on Tasks", 
-                        value=f"{row['Avg_Time_Percentage']:.0f}%"
-                    )
+                    <div style="margin-top: 20px;">
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #1f77b4;">
+                                {row['Automation_Rate']:.0f}%
+                            </div>
+                            <div style="font-size: 12px; color: #666;">Automation Rate</div>
+                        </div>
+                        
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; color: #ff7f0e;">
+                                {row['Avg_Time_Percentage']:.0f}%
+                            </div>
+                            <div style="font-size: 12px; color: #666;">Avg Time on Tasks</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         
         st.markdown("---")
         
