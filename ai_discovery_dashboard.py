@@ -307,21 +307,30 @@ def main():
         
         for i, (_, row) in enumerate(function_stats.iterrows()):
             with cols[i]:
-                # Determine color based on automation rate
+                # Determine color and styling based on automation rate
                 if row['Automation_Rate'] >= 60:
                     color = "#2ecc71"  # Green
-                    icon = "🟢"
+                    bg_color = "rgba(46, 204, 113, 0.1)"
+                    border_color = "rgba(46, 204, 113, 0.3)"
+                    icon = "●"
+                    status = "High"
                 elif row['Automation_Rate'] >= 30:
                     color = "#f39c12"  # Orange
-                    icon = "🟡"
+                    bg_color = "rgba(243, 156, 18, 0.1)"
+                    border_color = "rgba(243, 156, 18, 0.3)"
+                    icon = "●"
+                    status = "Medium"
                 else:
                     color = "#e74c3c"  # Red
-                    icon = "🔴"
+                    bg_color = "rgba(231, 76, 60, 0.1)"
+                    border_color = "rgba(231, 76, 60, 0.3)"
+                    icon = "○"
+                    status = "Low"
                 
                 st.markdown(f"""
                 <div style="
-                    background: linear-gradient(135deg, {color}15, {color}05);
-                    border: 2px solid {color}40;
+                    background: {bg_color};
+                    border: 2px solid {border_color};
                     border-radius: 15px;
                     padding: 20px;
                     text-align: center;
@@ -329,10 +338,12 @@ def main():
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
+                    margin: 10px 0;
                 ">
                     <div>
                         <h4 style="margin: 0; color: {color};">{icon} {row['Function']}</h4>
                         <p style="margin: 5px 0; font-size: 12px; color: #666;">({row['Response_Count']} responses)</p>
+                        <span style="background: {color}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px;">{status} Automation</span>
                     </div>
                     
                     <div style="margin: 10px 0;">
@@ -346,7 +357,7 @@ def main():
                         <div style="font-size: 16px; font-weight: bold; color: #333;">
                             {row['Avg_Time_Percentage']:.0f}%
                         </div>
-                        <div style="font-size: 12px; color: #666;">Avg Time on Tasks</div>
+                        <div style="font-size: 12px; color: #666;">Time on Tasks</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
