@@ -332,7 +332,7 @@ def main():
                 ">
                     <div>
                         <h4 style="margin: 0; color: {color};">{icon} {row['Function']}</h4>
-                        <p style="margin: 5px 0; font-size: 12px; color: #666;">({row['Total_Responses']} responses)</p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #666;">({row['Response_Count']} responses)</p>
                     </div>
                     
                     <div style="margin: 10px 0;">
