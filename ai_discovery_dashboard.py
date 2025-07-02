@@ -363,15 +363,15 @@ def main():
             proficiency_counts = df['proficiency_level'].value_counts()
             
             proficiency_icons = {
-                'Basic – I've used them for simple tasks like writing or summarizing': '🔶',
-                'Confident – I can craft decent prompts and use GenAI for work regularly': '🟢', 
-                'Advanced – I understand prompting strategies and optimize outputs': '🔵'
+                'Basic – I've used them for simple tasks like writing or summarizing': '●',
+                'Confident – I can craft decent prompts and use GenAI for work regularly': '●', 
+                'Advanced – I understand prompting strategies and optimize outputs': '●'
             }
             
             total_responses = len(df)
             for level, count in proficiency_counts.items():
                 percentage = (count / total_responses) * 100
-                icon = proficiency_icons.get(level, '⚪')
+                icon = proficiency_icons.get(level, '○')
                 level_short = level.split('–')[0].strip()
                 
                 # Create progress bar
@@ -392,15 +392,15 @@ def main():
             frequency_counts = df['usage_frequency'].value_counts()
             
             frequency_icons = {
-                'Frequently (Daily)': '🔥',
-                'Regularly (3-5 times per week)': '📅',
-                'Occasionally (1-2 times per week)': '🌙',
-                'Rarely (Few times per month)': '❄️'
+                'Frequently (Daily)': '▲',
+                'Regularly (3-5 times per week)': '■',
+                'Occasionally (1-2 times per week)': '●',
+                'Rarely (Few times per month)': '▼'
             }
             
             for freq, count in frequency_counts.items():
                 percentage = (count / total_responses) * 100
-                icon = frequency_icons.get(freq, '⚪')
+                icon = frequency_icons.get(freq, '○')
                 
                 st.markdown(f"""
                 <div style="margin: 15px 0;">
