@@ -320,22 +320,24 @@ def main():
                 
                 # Use Streamlit container for clean styling
                 with st.container():
+                    # Fixed height header section
                     st.markdown(f"**{status_color} {row['Function']}**")
                     st.caption(f"({row['Response_Count']} responses)")
+                    st.caption(status_text)
                     
-                    # Automation rate metric
+                    # Add consistent spacing
+                    st.write("")
+                    
+                    # Metrics section with consistent positioning
                     st.metric(
                         label="Automation Rate",
                         value=f"{row['Automation_Rate']:.0f}%"
                     )
                     
-                    # Time percentage
                     st.metric(
                         label="Avg Time on Tasks", 
                         value=f"{row['Avg_Time_Percentage']:.0f}%"
                     )
-                    
-                    st.caption(status_text)
         
         st.markdown("---")
         
