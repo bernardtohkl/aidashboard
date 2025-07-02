@@ -249,14 +249,14 @@ def main():
     
     # Organization-Wide Analysis Tab
     with main_tabs[0]:
-            st.header("📈 Overall Survey Analysis")
-    
-            # Overview metrics
-            total_responses, avg_time_spent, automation_users, automation_rate = create_overview_metrics(df)
+        st.header("📈 Overall Survey Analysis")
         
-            # Display metrics as infographic cards
-            col1, col2, col3, col4 = st.columns(4)
-    
+        # Overview metrics
+        total_responses, avg_time_spent, automation_users, automation_rate = create_overview_metrics(df)
+        
+        # Display metrics as infographic cards
+        col1, col2, col3, col4 = st.columns(4)
+        
         with col1:
             st.markdown(f"""
             <div style="background: linear-gradient(135deg, #74b9ff, #0984e3); padding: 20px; border-radius: 10px; text-align: center; color: white;">
