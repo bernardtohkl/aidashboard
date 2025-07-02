@@ -363,9 +363,9 @@ def main():
             proficiency_counts = df['proficiency_level'].value_counts()
             
             proficiency_icons = {
-                'Basic – I've used them for simple tasks like writing or summarizing': '🟨',
-                'Confident – I can craft decent prompts and use GenAI for work regularly': '🟩', 
-                'Advanced – I understand prompting strategies and optimize outputs': '🟦'
+                'Basic – I've used them for simple tasks like writing or summarizing': '🔶',
+                'Confident – I can craft decent prompts and use GenAI for work regularly': '🟢', 
+                'Advanced – I understand prompting strategies and optimize outputs': '🔵'
             }
             
             total_responses = len(df)
