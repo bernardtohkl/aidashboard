@@ -316,7 +316,7 @@ def main():
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
-                    st.metric("Team Size", f"{func_stats['Response_Count']} people")
+                    st.metric("Number of Respondents", f"{func_stats['Response_Count']}")
                 
                 with col2:
                     automation_rate = func_stats['Automation_Rate']
@@ -344,7 +344,7 @@ def main():
                     for level, count in prof_counts.items():
                         percentage = (count / len(func_df)) * 100
                         level_short = level.split('–')[0].strip() if '–' in level else level[:15]
-                        st.write(f"**{level_short}**: {count} people ({percentage:.0f}%)")
+                        st.write(f"**{level_short}**: {count} ({percentage:.0f}%)")
                     
                     st.write("")
                     
@@ -354,7 +354,7 @@ def main():
                     for freq, count in freq_counts.items():
                         percentage = (count / len(func_df)) * 100
                         freq_short = freq.split('(')[0].strip()
-                        st.write(f"**{freq_short}**: {count} people ({percentage:.0f}%)")
+                        st.write(f"**{freq_short}**: {count} ({percentage:.0f}%)")
                 
                 with col2:
                     st.subheader("🚧 Top Challenges")
@@ -557,7 +557,7 @@ def main():
                         {short_challenge}
                     </div>
                     <div style="font-size: 20px; font-weight: bold; color: #e91e63;">
-                        {count} people
+                        {count}
                     </div>
                     <div style="font-size: 12px; color: #666;">
                         ({percentage:.0f}% of respondents)
