@@ -16,8 +16,12 @@ st.set_page_config(
 @st.cache_data
 def load_and_process_data():
     """Load and process the AI Discovery survey data"""
-    # Load the CSV file
-    df = pd.read_csv('data/AI_Discovery_Responses.csv')
+    # Load the CSV file - handle both local and deployment paths
+    import os
+    csv_path = 'data/AI_Discovery_Responses.csv'
+    if not os.path.exists(csv_path):
+        csv_path = os.path.join(os.path.dirname(__file__), 'data', 'AI_Discovery_Responses.csv')
+    df = pd.read_csv(csv_path)
     
     # Clean column names
     df.columns = [col.strip() for col in df.columns]
