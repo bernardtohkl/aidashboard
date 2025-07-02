@@ -256,37 +256,163 @@ def main():
         # Overview metrics
         total_responses, avg_time_spent, automation_users, automation_rate = create_overview_metrics(df)
         
-        # Display metrics
+        # Display metrics as infographic cards
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("Total Responses", total_responses)
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #74b9ff, #0984e3); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+                <div style="font-size: 30px;">👥</div>
+                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{total_responses}</div>
+                <div style="font-size: 14px;">Survey Responses</div>
+            </div>
+            """, unsafe_allow_html=True)
         
         with col2:
-            st.metric("Avg Time on Repetitive Tasks", f"{avg_time_spent:.1f}%")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #fd79a8, #e84393); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+                <div style="font-size: 30px;">⏰</div>
+                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{avg_time_spent:.0f}%</div>
+                <div style="font-size: 14px;">Avg Time on Tasks</div>
+            </div>
+            """, unsafe_allow_html=True)
         
         with col3:
-            st.metric("Automation Users", automation_users)
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #55efc4, #00b894); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+                <div style="font-size: 30px;">🤖</div>
+                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{automation_users}/{total_responses}</div>
+                <div style="font-size: 14px;">Using Automation</div>
+            </div>
+            """, unsafe_allow_html=True)
         
         with col4:
-            st.metric("Automation Rate", f"{automation_rate:.1f}%")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #fdcb6e, #e17055); padding: 20px; border-radius: 10px; text-align: center; color: white;">
+                <div style="font-size: 30px;">📊</div>
+                <div style="font-size: 24px; font-weight: bold; margin: 5px 0;">{automation_rate:.0f}%</div>
+                <div style="font-size: 14px;">Automation Rate</div>
+            </div>
+            """, unsafe_allow_html=True)
         
         st.markdown("---")
         
-        # Function breakdown table
-        st.subheader("📊 Function Breakdown")
+        # Function breakdown as infographic cards
+        st.subheader("🏢 Corporate Functions at a Glance")
+        
         function_stats = create_function_breakdown(df)
-        st.dataframe(function_stats, use_container_width=True)
+        
+        # Create infographic-style function cards
+        cols = st.columns(len(function_stats))
+        
+        for i, (_, row) in enumerate(function_stats.iterrows()):
+            with cols[i]:
+                # Determine color based on automation rate
+                if row['Automation_Rate'] >= 60:
+                    color = "#2ecc71"  # Green
+                    icon = "🟢"
+                elif row['Automation_Rate'] >= 30:
+                    color = "#f39c12"  # Orange
+                    icon = "🟡"
+                else:
+                    color = "#e74c3c"  # Red
+                    icon = "🔴"
+                
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, {color}15, {color}05);
+                    border: 2px solid {color}40;
+                    border-radius: 15px;
+                    padding: 20px;
+                    text-align: center;
+                    height: 200px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                ">
+                    <div>
+                        <h4 style="margin: 0; color: {color};">{icon} {row['Function']}</h4>
+                        <p style="margin: 5px 0; font-size: 12px; color: #666;">({row['Total_Responses']} responses)</p>
+                    </div>
+                    
+                    <div style="margin: 10px 0;">
+                        <div style="font-size: 24px; font-weight: bold; color: {color};">
+                            {row['Automation_Rate']:.0f}%
+                        </div>
+                        <div style="font-size: 12px; color: #666;">Automation Rate</div>
+                    </div>
+                    
+                    <div>
+                        <div style="font-size: 16px; font-weight: bold; color: #333;">
+                            {row['Avg_Time_Spent']:.0f}%
+                        </div>
+                        <div style="font-size: 12px; color: #666;">Avg Time on Tasks</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
         st.markdown("---")
         
-        # Overview visualizations
+        # AI Proficiency & Usage Infographic
+        st.subheader("🧠 AI Adoption Landscape")
+        
         col1, col2 = st.columns(2)
         
         with col1:
-            st.plotly_chart(plot_proficiency_distribution(df), use_container_width=True)
+            st.markdown("#### 📊 AI Proficiency Levels")
+            proficiency_counts = df['proficiency_level'].value_counts()
+            
+            proficiency_icons = {
+                'Basic – I've used them for simple tasks like writing or summarizing': '🟨',
+                'Confident – I can craft decent prompts and use GenAI for work regularly': '🟩', 
+                'Advanced – I understand prompting strategies and optimize outputs': '🟦'
+            }
+            
+            total_responses = len(df)
+            for level, count in proficiency_counts.items():
+                percentage = (count / total_responses) * 100
+                icon = proficiency_icons.get(level, '⚪')
+                level_short = level.split('–')[0].strip()
+                
+                # Create progress bar
+                st.markdown(f"""
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span style="font-weight: bold;">{icon} {level_short}</span>
+                        <span style="font-weight: bold; color: #2E86AB;">{count} ({percentage:.0f}%)</span>
+                    </div>
+                    <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px;">
+                        <div style="background: linear-gradient(90deg, #2E86AB, #A23B72); width: {percentage}%; height: 100%; border-radius: 10px;"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         
         with col2:
-            st.plotly_chart(plot_usage_frequency(df), use_container_width=True)
+            st.markdown("#### 📈 Usage Frequency")
+            frequency_counts = df['usage_frequency'].value_counts()
+            
+            frequency_icons = {
+                'Frequently (Daily)': '🔥',
+                'Regularly (3-5 times per week)': '📅',
+                'Occasionally (1-2 times per week)': '🌙',
+                'Rarely (Few times per month)': '❄️'
+            }
+            
+            for freq, count in frequency_counts.items():
+                percentage = (count / total_responses) * 100
+                icon = frequency_icons.get(freq, '⚪')
+                
+                st.markdown(f"""
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span style="font-weight: bold;">{icon} {freq}</span>
+                        <span style="font-weight: bold; color: #F18F01;">{count} ({percentage:.0f}%)</span>
+                    </div>
+                    <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px;">
+                        <div style="background: linear-gradient(90deg, #F18F01, #C73E1D); width: {percentage}%; height: 100%; border-radius: 10px;"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         
         # Automation Opportunity Visualization
         st.subheader("🎯 Automation Opportunity Analysis")
@@ -327,14 +453,55 @@ def main():
         fig_automation.update_layout(xaxis_tickangle=-45)
         st.plotly_chart(fig_automation, use_container_width=True)
         
-        # Additional overview charts
-        col1, col2 = st.columns(2)
+        # Challenges & Barriers Infographic
+        st.markdown("---")
+        st.subheader("🚧 Top Challenges & Barriers")
         
-        with col1:
-            st.plotly_chart(plot_top_challenges(df), use_container_width=True)
+        # Process challenges data
+        challenges_data = []
+        for _, row in df.iterrows():
+            if pd.notna(row['challenges']):
+                challenges = row['challenges'].split(',')
+                for challenge in challenges:
+                    challenges_data.append(challenge.strip())
         
-        with col2:
-            st.plotly_chart(plot_automation_usage(df), use_container_width=True)
+        challenge_counts = pd.Series(challenges_data).value_counts().head(6)
+        
+        # Create challenge cards
+        cols = st.columns(3)
+        challenge_icons = ['🎯', '⚡', '🔒', '⏰', '🎨', '📚']
+        
+        for i, (challenge, count) in enumerate(challenge_counts.items()):
+            with cols[i % 3]:
+                icon = challenge_icons[i % len(challenge_icons)]
+                percentage = (count / len(df)) * 100
+                
+                # Shorten challenge text for display
+                short_challenge = challenge.split(',')[0] if ',' in challenge else challenge
+                if len(short_challenge) > 30:
+                    short_challenge = short_challenge[:30] + "..."
+                
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+                    border-radius: 15px;
+                    padding: 15px;
+                    text-align: center;
+                    margin: 10px 0;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                ">
+                    <div style="font-size: 30px; margin-bottom: 10px;">{icon}</div>
+                    <div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 5px;">
+                        {short_challenge}
+                    </div>
+                    <div style="font-size: 20px; font-weight: bold; color: #e91e63;">
+                        {count} people
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        ({percentage:.0f}% of respondents)
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         
         # Interactive Time Savings Calculator
         st.markdown("---")
@@ -374,11 +541,94 @@ def main():
         else:
             st.warning(f"⚠️ Only {automation_percentage}% automation leaves significant opportunity on the table.")
         
-        # Overall detailed data view
+        # Visual Summary & Call to Action
         st.markdown("---")
-        st.subheader("📋 All Survey Responses")
-        display_columns = ['name', 'function', 'time_percentage', 'uses_automation', 'proficiency_level', 'usage_frequency']
-        st.dataframe(df[display_columns], use_container_width=True)
+        st.subheader("🚀 Ready to Transform? Here's Your Action Plan")
+        
+        # Create action plan cards
+        action_cols = st.columns(3)
+        
+        with action_cols[0]:
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 15px;
+                padding: 25px;
+                text-align: center;
+                color: white;
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <div style="font-size: 40px; margin-bottom: 15px;">🎯</div>
+                <h4 style="margin: 10px 0;">Phase 1: Quick Wins</h4>
+                <p style="margin: 0; font-size: 14px;">Start with simple task automation for immediate impact</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with action_cols[1]:
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                border-radius: 15px;
+                padding: 25px;
+                text-align: center;
+                color: white;
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <div style="font-size: 40px; margin-bottom: 15px;">📈</div>
+                <h4 style="margin: 10px 0;">Phase 2: Scale Up</h4>
+                <p style="margin: 0; font-size: 14px;">Expand automation to repetitive processes across functions</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with action_cols[2]:
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                border-radius: 15px;
+                padding: 25px;
+                text-align: center;
+                color: white;
+                height: 200px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <div style="font-size: 40px; margin-bottom: 15px;">🎉</div>
+                <h4 style="margin: 10px 0;">Phase 3: Transform</h4>
+                <p style="margin: 0; font-size: 14px;">Achieve strategic automation goals and measure ROI</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Final impact statement
+        st.markdown("---")
+        total_manual_hours = savings_data['manual_hours']
+        potential_50_savings = savings_data['potential_savings_50']
+        
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            margin: 20px 0;
+        ">
+            <h2 style="margin: 0 0 20px 0;">💡 The Bottom Line</h2>
+            <div style="font-size: 18px; line-height: 1.6;">
+                <p><strong>{total_manual_hours:.0f} hours</strong> of manual work happen weekly across all functions.</p>
+                <p>With <strong>50% automation</strong>, we could save <strong>{potential_50_savings:.0f} hours per week</strong></p>
+                <p style="font-size: 24px; font-weight: bold; margin-top: 20px;">
+                    = {potential_50_savings * 52:.0f} hours annually = {(potential_50_savings * 52)/2080:.1f} full-time positions! 🎯
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Function-specific tabs
     for i, function in enumerate(functions):
